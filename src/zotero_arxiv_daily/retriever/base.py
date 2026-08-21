@@ -5,6 +5,7 @@ from tqdm import tqdm
 from typing import Type
 from time import sleep
 from loguru import logger
+from ..reranker.keyword import KeywordMatcher
 
 
 class BaseRetriever(ABC):
@@ -12,6 +13,11 @@ class BaseRetriever(ABC):
     def __init__(self, config:DictConfig):
         self.config = config
         self.retriever_config = getattr(config.source,self.name)
+        self.keyword_matcher = (
+            KeywordMatcher(config.keyword)
+            if config.executor.reranker == "keyword"
+            else None
+        )
 
     @abstractmethod
     def _retrieve_raw_papers(self) -> list[RawPaperItem]:
@@ -23,6 +29,21 @@ class BaseRetriever(ABC):
 
     def retrieve_papers(self) -> list[Paper]:
         raw_papers = self._retrieve_raw_papers()
+        if self.keyword_matcher is not None:
+            before = len(raw_papers)
+            filtered_raw_papers = []
+            for raw_paper in raw_papers:
+                title = raw_paper.get("title", "") if isinstance(raw_paper, dict) else getattr(raw_paper, "title", "")
+                abstract = (
+                    raw_paper.get("abstract", "")
+                    if isinstance(raw_paper, dict)
+                    else getattr(raw_paper, "summary", getattr(raw_paper, "abstract", ""))
+                )
+                score, _ = self.keyword_matcher.match(title, abstract)
+                if score > 0:
+                    filtered_raw_papers.append(raw_paper)
+            raw_papers = filtered_raw_papers
+            logger.info("Keyword pre-filter kept {} of {} raw papers", len(raw_papers), before)
         logger.info("Processing papers...")
         papers = []
         for raw_paper in tqdm(raw_papers, total=len(raw_papers), desc="Converting papers"):

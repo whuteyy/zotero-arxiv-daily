@@ -31,6 +31,49 @@ llm:
   language: English # Preferred language for the TL;DR. Example: English
 
 reranker:
+  keyword:
+    min_score: 4.0 # Minimum score after required keyword groups and boosts.
+    min_group_matches: 1 # A paper must match at least this many topic groups.
+    exclude: [ferromagnet, antiferromagnet, magnetic material, Curie temperature, semiconductor]
+    groups:
+      core_interface:
+        weight: 4.0
+        all:
+          - [all-solid-state battery, solid-state battery, solid-state lithium battery]
+          - [solid electrolyte interface, electrode-electrolyte interface, interphase, interface]
+          - [lithium metal, lithium-metal, Li metal, Li-metal]
+        boost:
+          - [[operando, in situ, degradation, stability], 0.5]
+      sulfide_interface:
+        weight: 4.0
+        all:
+          - [sulfide solid electrolyte, argyrodite, LGPS, Li6PS5Cl]
+          - [lithium metal, lithium-metal, Li metal, Li-metal]
+          - [interface, interphase, degradation, stability]
+      buffer_coating:
+        weight: 4.0
+        all:
+          - [solid-state battery, solid-state lithium battery]
+          - [buffer layer, interlayer, coating, artificial interphase]
+          - [lithium metal, lithium-metal, solid electrolyte]
+      electrolyte_materials:
+        weight: 4.0
+        all:
+          - [solid electrolyte, solid-state electrolyte]
+          - [halide, sulfide, oxide, garnet, NASICON, polymer, composite]
+          - [interface, interfacial, transport]
+      transport_failure:
+        weight: 4.0
+        all:
+          - [solid-state battery interface, solid electrolyte interface, electrode-electrolyte interface]
+          - [Li-ion transport, lithium-ion transport, ion conduction, space-charge, polarization]
+          - [dendrite, void, crack, stress, contact loss]
+      computation_theory:
+        weight: 4.0
+        all:
+          - [solid electrolyte interface, solid-state battery interface, solid electrolyte]
+          - [DFT, first-principles, NEB, AIMD, machine learning potential]
+          - [Li-ion migration, lithium-ion migration, vacancy formation, reaction energy, stability]
   local:
     model: jinaai/jina-embeddings-v5-text-nano-retrieval # The Hugging Face model name of the local embedding model. Example: jinaai/jina-embeddings-v5-text-nano
     encode_kwargs:
@@ -48,4 +91,4 @@ executor:
   send_empty: false # Whether to send an empty email even if no new papers today. Example: true
   max_paper_num: 100 # The maximum number of the papers presented in the email. Example: 100
   source: ??? # The sources of papers to retrieve. Example: ['arxiv','biorxiv','medrxiv']
-  reranker: local # The reranker to use. Example: 'local' or 'api'
+  reranker: keyword # Use direct title/abstract keyword matching. Also supports 'local' or 'api'.

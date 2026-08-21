@@ -24,3 +24,54 @@ source:
 executor:
   debug: ${oc.env:DEBUG,null}
   source: ['arxiv']
+
+# Direct keyword matching for solid-state battery interface papers.
+# Each item in `all` is an alternative list; every item must match.
+keyword:
+  min_score: 4.0
+  min_group_matches: 1
+  exclude:
+    - ferromagnet
+    - antiferromagnet
+    - magnetic material
+    - Curie temperature
+    - semiconductor
+  groups:
+    core_interface:
+      weight: 4.0
+      all:
+        - [all-solid-state battery, solid-state battery, solid-state lithium battery]
+        - [solid electrolyte interface, electrode-electrolyte interface, interphase, interface]
+        - [lithium metal, lithium-metal, Li metal, Li-metal]
+      boost:
+        - [[operando, in situ, degradation, stability], 0.5]
+    sulfide_interface:
+      weight: 4.0
+      all:
+        - [sulfide solid electrolyte, argyrodite, LGPS, Li6PS5Cl]
+        - [lithium metal, lithium-metal, Li metal, Li-metal]
+        - [interface, interphase, degradation, stability]
+    buffer_coating:
+      weight: 4.0
+      all:
+        - [solid-state battery, solid-state lithium battery]
+        - [buffer layer, interlayer, coating, artificial interphase]
+        - [lithium metal, lithium-metal, solid electrolyte]
+    electrolyte_materials:
+      weight: 4.0
+      all:
+        - [solid electrolyte, solid-state electrolyte]
+        - [halide, sulfide, oxide, garnet, NASICON, polymer, composite]
+        - [interface, interfacial, transport]
+    transport_failure:
+      weight: 4.0
+      all:
+        - [solid-state battery interface, solid electrolyte interface, electrode-electrolyte interface]
+        - [Li-ion transport, lithium-ion transport, ion conduction, space-charge, polarization]
+        - [dendrite, void, crack, stress, contact loss]
+    computation_theory:
+      weight: 4.0
+      all:
+        - [solid electrolyte interface, solid-state battery interface, solid electrolyte]
+        - [DFT, first-principles, NEB, AIMD, machine learning potential]
+        - [Li-ion migration, lithium-ion migration, vacancy formation, reaction energy, stability]

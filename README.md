@@ -102,6 +102,32 @@ executor:
   source: ['arxiv']
 ```
 Set `source.arxiv.include_cross_list: true` if you want cross-listed papers included.
+
+### Keyword filtering mode
+
+This fork uses direct keyword matching by default instead of embedding similarity. A paper must satisfy all alternatives in at least one configured topic group, and papers containing terms in `keyword.exclude` are discarded. Matching is performed on the title and abstract before full-text download, so unrelated papers are removed early.
+
+The six solid-state battery interface groups are already included in `config/custom.yaml`. To tune the result, edit only these fields in `CUSTOM_CONFIG`:
+
+```yaml
+executor:
+  reranker: keyword
+
+keyword:
+  min_score: 4.0
+  min_group_matches: 1
+  exclude: [ferromagnet, antiferromagnet, semiconductor]
+  groups:
+    my_topic:
+      weight: 4.0
+      all:
+        - [solid-state battery, all-solid-state battery]
+        - [interface, interphase]
+        - [lithium metal, Li metal]
+```
+
+Within each `all` row, terms are alternatives; every row must have a match. Add a new group when you want another daily push, rather than combining unrelated research directions into one very long query.
+
 >[!NOTE]
 > `${oc.env:XXX,yyy}` means the value of the environment variable `XXX`. If the variable is not set, the default value `yyy` will be used.
 
@@ -156,7 +182,7 @@ executor:
   send_empty: false # Whether to send an empty email even if no new papers today. Example: true
   max_paper_num: 100 # The maximum number of the papers presented in the email. Example: 100
   source: ??? # The sources of papers to retrieve. Example: ['arxiv','biorxiv','medrxiv']
-  reranker: local # The reranker to use. Example: 'local' or 'api'
+  reranker: keyword # The reranker to use: 'keyword', 'local', or 'api'
 ```
 
 That's all! Now you can test the workflow by manually triggering it:
